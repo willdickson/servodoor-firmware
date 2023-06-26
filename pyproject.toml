@@ -1,0 +1,10 @@
+[project]
+name = "servodoor-firmware"
+version = "0.1.0"
+description = ""
+license = {text="MIT"}
+authors = [{name="Will Dickson", email="wbd@caltech.edu"}]
+readme = "README.md"
+dependencies = ["adafruit-ampy"] 
+
+

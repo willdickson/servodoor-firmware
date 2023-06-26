@@ -1,0 +1,17 @@
+{
+    "front" : { 
+        "servo" : 1, 
+        "open"  : 1300, 
+        "close" : 1898 
+    }, 
+    "left" : { 
+        "servo" : 2,   
+        "open"  : 1290, 
+        "close" : 1890 
+    }, 
+    "right" : { 
+        "servo" : 3, 
+        "open"  : 1300, 
+        "close" : 1890 
+    }
+}
