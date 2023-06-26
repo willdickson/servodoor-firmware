@@ -1,8 +1,8 @@
 ## servodoor-firmware
 
-Device firmware automatic control of doors using RC servos and Pimoroni's
+Micropython firmware for automatic control of doors using RC servos via Pimoroni's
 [Servo 2040](https://shop.pimoroni.com/products/servo-2040) 18-channel servo
-controller. 
+controller. Designed for T-maze type experiments.
 
 ## Requirements
 
