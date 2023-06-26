@@ -39,6 +39,11 @@ def upload_app_main():
         subprocess.run(cmd_list)
     print()
 
+    print('resetting board ...')
+    cmd_list = ['ampy', '-p', args.port, 'reset', '--hard']
+    subprocess.run(cmd_list)
+    print()
+
 
 def get_src_list():
     """ Get list of *.py files in src sub-directory """
