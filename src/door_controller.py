@@ -36,7 +36,7 @@ class DoorController:
 
     def on_message(self):
         """ 
-        Processing incoming messages, pass to switchyard for actions, and send 
+        Processes incoming messages, pass to switchyard for actions, and send 
         response to sender.  
         """
         msg = self.messenger.message
