@@ -15,6 +15,12 @@ class Configuration:
         if len(self.error_msgs) < self.MAX_ERROR_MSGS:
             self.error_msgs.append(msg)
 
+    def clear_error_msgs(self):
+        self.error_msgs.clear()
+
+    def has_errors(self):
+        return bool(self.error_msgs)
+
     def load(self):
         data = None
         try:

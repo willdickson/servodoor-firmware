@@ -35,7 +35,4 @@ class Messenger:
         self.buffer = []
 
     def send(self, msg_dict):
-        try:
-            print(json.dumps(msg_dict))
-        except:
-            print('error')
+        print(json.dumps(msg_dict))
