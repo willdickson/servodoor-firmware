@@ -1,17 +1,21 @@
+import time
 import servo
 import constants
 from messaging import Messenger
+from dynamic_door import DynamicDoor
 from configuration import Configuration
 
 class DoorController:
 
     MAX_ERROR_MSGS = 5 
+    DOOR_DT = 0.0025
 
     def __init__(self):
         self.config = Configuration()
         self.messenger = Messenger()
         self.door_state = {}
         self.setup_doors()
+        self.setup_dynamics()
         self.error_msgs = []
 
     def setup_doors(self):
@@ -24,6 +28,20 @@ class DoorController:
             self.doors.pulse(num, pwm, load=False)
             self.doors.enable(num, load=False)
         self.doors.load()
+
+    def setup_dynamics(self):
+        """
+        Set up dynamic models for door motion
+        """
+        self.dynamic_doors = {}
+        for name, data in self.config.servo_data.items():
+            self.dynamic_doors[name] = DynamicDoor(
+                    dt = self.DOOR_DT,
+                    pos = float(data['close']),
+                    set_pos = float(data['close']),
+                    max_vel = float(data['max_vel']),
+                    max_acc = float(data['max_acc']),
+                    )
 
     def add_error_msg(self,msg):
         """
@@ -40,10 +58,25 @@ class DoorController:
 
     def run(self):
         """ Main run loop for door controller """
+        t_last = time.ticks_us()
         while True:
             self.messenger.update()
             if self.messenger.message:
                 self.on_message()
+            t_curr = time.ticks_us()
+            dt = us_to_sec(time.ticks_diff(t_curr, t_last))
+            if dt >= self.DOOR_DT:
+                self.update_doors()
+                t_last = t_curr
+
+    def update_doors(self):
+        for name, model in self.dynamic_doors.items():
+            model.update()
+            if not model.at_set_pos:
+                pwm = round(model.pos)
+                num = self.config.servo_data[name]['index']
+                self.doors.pulse(num, pwm, load=False)
+        self.doors.load()
 
     def send(self, rsp):
         self.messenger.send(rsp)
@@ -89,6 +122,8 @@ class DoorController:
             rsp = self.cmd_get_config()
         elif cmd == 'config_errors':
             rsp = self.cmd_config_errors()
+        elif cmd == 'positions':
+            rsp = self.cmd_get_positions()
         else:
             self.add_error_msg('unknown cmd')
             rsp = {'ok': False}
@@ -127,10 +162,11 @@ class DoorController:
                 self.add_error_msg(f'cmd_set name {name} not found')
                 rsp = {'ok': False}
                 continue
-            num = data['index']
-            self.doors.pulse(num, pwm, load=False)
+            #num = data['index']
+            #self.doors.pulse(num, pwm, load=False)
+            self.dynamic_doors[name].set_pos = pwm
             self.door_state[name] = position
-        self.doors.load()
+        #self.doors.load()
         rsp['doors'] = self.door_state
         return rsp
 
@@ -174,6 +210,14 @@ class DoorController:
         rsp = {'ok': True, 'config': config}
         return rsp
 
+    def cmd_get_positions(self):
+        positions = {}
+        for name, model in self.dynamic_doors.items():
+            positions[name] = model.pos
+        rsp = {'ok': True, 'positions': positions}
+        return rsp
+           
+
     def cmd_config_errors(self):
         error_msgs = []
         error_msgs.extend(self.config.error_msgs)
@@ -181,3 +225,10 @@ class DoorController:
         return rsp
 
 
+# ----------------------------------------------------------------------------------
+
+def ms_to_sec(val):
+    return val*1.0e-3
+
+def us_to_sec(val):
+    return val*1.0e-6
